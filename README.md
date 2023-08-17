@@ -19,5 +19,5 @@ simply type "!wiki" then a keyword.
 
 example: "!wiki depp"
 
-"!wiki en depp" will link you the english wikipedia page . "!wiki tr depp" will link you the turkish version. you can add more languages which I have commented on the code itself.
+"!wiki en depp" will link you to the English wikipedia page. "!wiki tr depp" will link you to the Turkish version. you can add more languages which I have commented on in the code itself.
 
