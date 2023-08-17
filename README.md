@@ -1,11 +1,11 @@
 A simple Discord bot that fetches data from Wikipedia and sends it into the Discord chat channel with a link.
-Only two Python libraries are needed for this. (Not counting hosting)
+You only need two things for this. (Not counting hosting)
 
-code pip install discord.py
+1-) code pip install discord.py
 
 AND
 
-pip install wikipedia-api
+2-) pip install wikipedia-api
 
 Then create your own bot by going here and creating one. URL: (https://discord.com/developers/applications)
 Get your bot token and replace it with:
