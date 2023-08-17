@@ -21,7 +21,7 @@ async def on_ready():
 @bot.command()
 async def wiki(ctx, language, *, query):
     try:
-        supported_languages = ['en', 'tr']  # Add more languages if needed
+        supported_languages = ['en', 'tr']  # Add more languages if needed.
 
         if language.lower() not in supported_languages:
             await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
