@@ -19,15 +19,21 @@ async def on_ready():
 
 
 @bot.command()
-async def wiki(ctx, *, query):
+async def wiki(ctx, language, *, query):
     try:
+        supported_languages = ['en', 'tr']  # Add more languages if needed
+        
+        if language.lower() not in supported_languages:
+            await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
+            return
+        
         wiki_wiki = wikipediaapi.Wikipedia(
-            language='en',
+            language=language.lower(),
             extract_format=wikipediaapi.ExtractFormat.WIKI,
             user_agent='MyDiscordBot/1.0'
         )
         page = wiki_wiki.page(query)
-
+        
         response = f"**{page.title}**\n{page.fullurl}"
         await ctx.send(response)
     except wikipediaapi.exceptions.DisambiguationError as e:
@@ -36,4 +42,4 @@ async def wiki(ctx, *, query):
         await ctx.send("No results found for the given query.")
 
 # Run the bot
-bot.run('YOUR DISCORD BOT TOKEN')
+bot.run('MTE0MDc1NTUwMjMyMjcwMDMwMA.GcLHCz.cfehHln7Z1dbt-jviGsZxqcqfkIinJge1Oi0fg')
