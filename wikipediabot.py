@@ -42,4 +42,4 @@ async def wiki(ctx, language, *, query):
         await ctx.send("No results found for the given query.")
 
 # Run the bot
-bot.run('Your Token')
+bot.run('YOUR DISCORD BOT TOKEN')
