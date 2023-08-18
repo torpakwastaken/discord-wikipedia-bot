@@ -19,16 +19,21 @@ async def on_ready():
 
 
 @bot.command()
-async def wiki(ctx, language, *, query):
+async def wiki(ctx, *, query):
     try:
+        language = 'en'  # Default language is English
         supported_languages = ['en', 'tr']  # Add more languages if needed.
 
-        if language.lower() not in supported_languages:
-            await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
-            return
+        if query.startswith("en:") or query.startswith("tr:"):
+            lang_code, query = query.split(":", 1)
+            if lang_code.lower() in supported_languages:
+                language = lang_code.lower()
+            else:
+                await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
+                return
 
         wiki_wiki = wikipediaapi.Wikipedia(
-            language=language.lower(),
+            language=language,
             extract_format=wikipediaapi.ExtractFormat.WIKI,
             user_agent='MyDiscordBot/1.0'
         )
@@ -42,4 +47,4 @@ async def wiki(ctx, language, *, query):
         await ctx.send("No results found for the given query.")
 
 # Run the bot
-bot.run('YOUR DISCORD BOT TOKEN')
+bot.run('YOUR TOKEN')
