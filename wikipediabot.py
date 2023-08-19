@@ -21,30 +21,38 @@ async def on_ready():
 @bot.command()
 async def wiki(ctx, *, query):
     try:
-        language = 'en'  # Default language is English
-        supported_languages = ['en', 'tr']  # Add more languages if needed.
+        if query.startswith("tr "):  # Check if the query starts with 'tr '
+            response = "Özür dilerim. Hiçbir sonuç bulunamadı."
+            await ctx.send(response)
+        else:
+            language = 'en'  # Default language is English
+            supported_languages = ['en', 'tr']  # Add more languages if needed.
 
-        if query.startswith("en:") or query.startswith("tr:"):
-            lang_code, query = query.split(":", 1)
-            if lang_code.lower() in supported_languages:
-                language = lang_code.lower()
-            else:
-                await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
+            if query.startswith("en:") or query.startswith("tr:"):
+                lang_code, query = query.split(":", 1)
+                if lang_code.lower() in supported_languages:
+                    language = lang_code.lower()
+                else:
+                    await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
+                    return
+
+            wiki_wiki = wikipediaapi.Wikipedia(
+                language=language,
+                extract_format=wikipediaapi.ExtractFormat.WIKI,
+                user_agent='MyDiscordBot/1.0'
+            )
+            page = wiki_wiki.page(query)
+
+            if not page.exists():
+                await ctx.send("No results found for the given query.")
                 return
 
-        wiki_wiki = wikipediaapi.Wikipedia(
-            language=language,
-            extract_format=wikipediaapi.ExtractFormat.WIKI,
-            user_agent='MyDiscordBot/1.0'
-        )
-        page = wiki_wiki.page(query)
-
-        response = f"**{page.title}**\n{page.fullurl}"
-        await ctx.send(response)
-    except wikipediaapi.exceptions.DisambiguationError as e:
+            response = f"**{page.title}**\n{page.fullurl}"
+            await ctx.send(response)
+    except wikipediaapi.DisambiguationError as e:
         await ctx.send("Ambiguous query. Please provide more specific search terms.")
-    except wikipediaapi.exceptions.PageError as e:
-        await ctx.send("No results found for the given query.")
+    except Exception as e:
+        await ctx.send("An error occurred while processing your request.")
 
 # Run the bot
-bot.run('YOUR TOKEN')
+bot.run('token')
