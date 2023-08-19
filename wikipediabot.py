@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import wikipediaapi
+import os
 
 # Set up intents.
 intents = discord.Intents.default()
@@ -55,4 +56,4 @@ async def wiki(ctx, *, query):
         await ctx.send("An error occurred while processing your request.")
 
 # Run the bot
-bot.run('token')
+bot.run(os.environ["DISCORD_TOKEN"])
