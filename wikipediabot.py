@@ -1,15 +1,14 @@
 import discord
 from discord.ext import commands
 import wikipediaapi
-import difflib
 
-# Set up intents.
+# Set up intents
 intents = discord.Intents.default()
 intents.typing = False
 intents.presences = False
 intents.message_content = True
 
-# Set up the bot with intents. Change '!' if you like any other symbol.
+# Set up the bot with intents
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 
@@ -21,47 +20,83 @@ async def on_ready():
 
 @bot.command()
 async def wiki(ctx, *, query):
+    default_language = 'en'
+    language_prefixes = {
+        'en': 'en ',
+        'tr': 'tr ',
+        'fr': 'fr ',
+        'es': 'es ',
+        'de': 'de ',
+        'it': 'it ',
+        'pt': 'pt ',
+        'ja': 'ja ',
+        'ko': 'ko ',
+        'ru': 'ru ',
+        'ar': 'ar ',
+    }
+
+    # Checking if the user specified a different language
+    language = None
+    for lang, prefix in language_prefixes.items():
+        if query.startswith(prefix):
+            language = lang
+            query = query[len(prefix):]
+            break
+
+    if language is None:
+        language = default_language
+
     try:
-        if query.startswith("tr "):
-            response = "Özür dilerim. Hiçbir sonuç bulunamadı."
-            await ctx.send(response)
-        else:
-            language = 'en'
-            supported_languages = ['en', 'tr']
+        supported_languages = list(language_prefixes.keys())
 
-            if query.startswith("en:") or query.startswith("tr:"):
-                lang_code, query = query.split(":", 1)
-                if lang_code.lower() in supported_languages:
-                    language = lang_code.lower()
-                else:
-                    await ctx.send("Unsupported language. Please use 'en' for English or 'tr' for Turkish.")
-                    return
-
-            wiki_wiki = wikipediaapi.Wikipedia(
-                language=language,
-                extract_format=wikipediaapi.ExtractFormat.WIKI,
-                user_agent='MyDiscordBot/1.0'
+        if language not in supported_languages:
+            await ctx.send(
+                f"Unsupported language. Please use one of the following language codes: {', '.join(supported_languages)}."
             )
-            page = wiki_wiki.page(query)
+            return
 
-            if not page.exists():
-                # Find similar titles and suggest them
-                titles = [page.title for page in wiki_wiki.page(
-                    query, results=5)]
-                suggestions = difflib.get_close_matches(
-                    query, titles, n=1, cutoff=0.6)
-                if suggestions:
-                    await ctx.send(f"No results found for the given query. Did you mean: `{suggestions[0]}`?")
-                else:
-                    await ctx.send("No results found for the given query.")
-                return
+        wiki_wiki = wikipediaapi.Wikipedia(
+            language=language,
+            extract_format=wikipediaapi.ExtractFormat.WIKI,
+            user_agent='MyDiscordBot/1.0'
+        )
+        page = wiki_wiki.page(query)
 
-            response = f"**{page.title}**\n{page.fullurl}"
-            await ctx.send(response)
-    except wikipediaapi.DisambiguationError as e:
+        if not page.exists():
+            await ctx.send("No results found for the given query.")
+            return
+
+        response = f"**{page.title}**\n{page.fullurl}"
+
+        await ctx.send(response)
+    except wikipediaapi.exceptions.DisambiguationError as e:
         await ctx.send("Ambiguous query. Please provide more specific search terms.")
     except Exception as e:
-        await ctx.send("An error occurred while processing your request.")
+        await ctx.send(f"An error occurred: {e}")
+
+
+@bot.command(name='bot_help')
+async def help(ctx):
+    # Define the help message
+    help_message = (
+        "-----Welcome to the Wikipedia Bot!\n"
+        "-You can use the following commands:\n"
+        "-!wiki [language] [query]: Look up a Wikipedia article. Default language is English (en).\n"
+        "-!bot_help: Show this help message.\n\n"
+        "-----Example usages:\n"
+        "-!wiki atatürk: Search for 'atatürk' in English Wikipedia.\n"
+        "-!wiki tr atatürk: Search for 'atatürk' in Turkish Wikipedia.\n"
+        "-Created by Torpak.\n"
+    )
+
+    await ctx.send(help_message)
+
+
+@bot.command()
+async def report(ctx):
+    survey_link = "https://forms.gle/LMQ6oARWknk9DXWj9"
+    await ctx.send(f"Please take a moment to fill out our bug - error survey: {survey_link}")
+
 
 # Run the bot
-bot.run('token')
+bot.run(os.environ["DISCORD_TOKEN"])
