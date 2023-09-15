@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import wikipediaapi
-import os
+import difflib
 
 # Set up intents.
 intents = discord.Intents.default()
@@ -22,12 +22,12 @@ async def on_ready():
 @bot.command()
 async def wiki(ctx, *, query):
     try:
-        if query.startswith("tr "):  # Check if the query starts with 'tr '
+        if query.startswith("tr "):
             response = "Özür dilerim. Hiçbir sonuç bulunamadı."
             await ctx.send(response)
         else:
-            language = 'en'  # Default language is English
-            supported_languages = ['en', 'tr']  # Add more languages if needed.
+            language = 'en'
+            supported_languages = ['en', 'tr']
 
             if query.startswith("en:") or query.startswith("tr:"):
                 lang_code, query = query.split(":", 1)
@@ -45,7 +45,15 @@ async def wiki(ctx, *, query):
             page = wiki_wiki.page(query)
 
             if not page.exists():
-                await ctx.send("No results found for the given query.")
+                # Find similar titles and suggest them
+                titles = [page.title for page in wiki_wiki.page(
+                    query, results=5)]
+                suggestions = difflib.get_close_matches(
+                    query, titles, n=1, cutoff=0.6)
+                if suggestions:
+                    await ctx.send(f"No results found for the given query. Did you mean: `{suggestions[0]}`?")
+                else:
+                    await ctx.send("No results found for the given query.")
                 return
 
             response = f"**{page.title}**\n{page.fullurl}"
@@ -56,4 +64,4 @@ async def wiki(ctx, *, query):
         await ctx.send("An error occurred while processing your request.")
 
 # Run the bot
-bot.run(os.environ["DISCORD_TOKEN"])
+bot.run('token')
