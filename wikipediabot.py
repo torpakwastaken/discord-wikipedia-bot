@@ -1,6 +1,10 @@
+import os
 import discord
 from discord.ext import commands
 import wikipediaapi
+
+COMMAND_PREFIX = '!'
+DEFAULT_LANGUAGE = 'en'
 
 # Set up intents
 intents = discord.Intents.default()
@@ -9,7 +13,7 @@ intents.presences = False
 intents.message_content = True
 
 # Set up the bot with intents
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
 
 @bot.event
@@ -20,7 +24,6 @@ async def on_ready():
 
 @bot.command()
 async def wiki(ctx, *, query):
-    default_language = 'en'
     language_prefixes = {
         'en': 'en ',
         'tr': 'tr ',
@@ -36,15 +39,12 @@ async def wiki(ctx, *, query):
     }
 
     # Checking if the user specified a different language
-    language = None
+    language = DEFAULT_LANGUAGE
     for lang, prefix in language_prefixes.items():
         if query.startswith(prefix):
             language = lang
             query = query[len(prefix):]
             break
-
-    if language is None:
-        language = default_language
 
     try:
         supported_languages = list(language_prefixes.keys())
@@ -69,9 +69,14 @@ async def wiki(ctx, *, query):
         response = f"**{page.title}**\n{page.fullurl}"
 
         await ctx.send(response)
-    except wikipediaapi.exceptions.DisambiguationError as e:
+
+    except wikipediaapi.exceptions.DisambiguationError:
         await ctx.send("Ambiguous query. Please provide more specific search terms.")
-    except Exception as e:
+
+    except wikipediaapi.exceptions.HTTPTimeoutError:
+        await ctx.send("Wikipedia API request timed out. Please try again later.")
+
+    except wikipediaapi.exceptions.WikipediaException as e:
         await ctx.send(f"An error occurred: {e}")
 
 
@@ -81,11 +86,11 @@ async def help(ctx):
     help_message = (
         "-----Welcome to the Wikipedia Bot!\n"
         "-You can use the following commands:\n"
-        "-!wiki [language] [query]: Look up a Wikipedia article. Default language is English (en).\n"
-        "-!bot_help: Show this help message.\n\n"
+        f"-{COMMAND_PREFIX}wiki [language] [query]: Look up a Wikipedia article. Default language is English ({DEFAULT_LANGUAGE}).\n"
+        f"-{COMMAND_PREFIX}bot_help: Show this help message.\n\n"
         "-----Example usages:\n"
-        "-!wiki atatürk: Search for 'atatürk' in English Wikipedia.\n"
-        "-!wiki tr atatürk: Search for 'atatürk' in Turkish Wikipedia.\n"
+        f"-{COMMAND_PREFIX}wiki atatürk: Search for 'atatürk' in English Wikipedia.\n"
+        f"-{COMMAND_PREFIX}wiki tr atatürk: Search for 'atatürk' in Turkish Wikipedia.\n"
         "-Created by Torpak.\n"
     )
 
